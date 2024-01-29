@@ -8,6 +8,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-EXPOSE 8000
+EXPOSE $PORT
 
-CMD ["uvicorn","main:app", "--host","0.0.0.0","--reload","--proxy-headers"]
+CMD uvicorn main:app --host 0.0.0.0 --port $PORT --reload --proxy-headers

@@ -2,6 +2,7 @@ import logging
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
 from models.migration import Table, departments_columns, jobs_columns, employees_columns, schemas
+from responses.historical import Historical_Services_Responses
 import pandas as pd
 import awswrangler as wr
 
@@ -13,7 +14,7 @@ log = logging.getLogger("uvicorn")
 
 router = APIRouter(prefix="")
 
-@router.post("/", status_code=200)
+@router.post("/", status_code=200, responses=Historical_Services_Responses)
 def upload_file(upsert: bool, table_name: Table, include_header: bool = False,batch_file: UploadFile = File(...)):
     """
     This request is Sync. It Doesn't allow more than 1GB per operation

@@ -57,4 +57,4 @@ def upload_file(upsert: bool, table_name: Table, include_header: bool = False,ba
     wr.postgresql.to_sql(df=dataframe,con=pg_conn, table=table_name, schema='public',upsert_conflict_columns=up_cols,
                                dtype=table_schema, use_column_names=True, mode=mode, chunksize=1000)
 
-    return JSONResponse(status_code=201,content={'message': "Accepted"})
+    return JSONResponse(status_code=200,content={'message': "Accepted"})

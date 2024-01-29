@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Any
+from enum import Enum
 
 class ServerError(BaseModel):
     detail: str = "Server Error"
@@ -16,12 +17,25 @@ BaseErrors = {
     422: {"model": Unprocessable}
 }
 
-
 class Accepted(BaseModel):
     message: str = 'Accepted'
 
 Success = {
-    201: {"model": Accepted}
+    200: {"model": Accepted}
 }
 
-Historical_Services_Responses = {**BaseErrors, **Success}
+class PreconditionError(str, Enum):
+    SCHEMA_EMPLOYEES_ERROR = "Check your batch file, Doesn't belong to employees schema"
+    SCHEMA_JOBS_ERROR = "Check your batch file, Doesn't belong to jobs schema"
+    SCHEMA_DEPARTMENTS_ERROR = "Check your batch file, Doesn't belong to departments schema"
+    UNABLE_TO_DEFINE_SCHEMA = "More columns than expected"
+
+class PreconditionFailed(BaseModel):
+    detail: str = PreconditionError
+
+PreconditionFailedErrors = {
+    412: {"model": PreconditionFailed}
+}
+
+
+Historical_Services_Responses = {**BaseErrors, **Success, **PreconditionFailedErrors}

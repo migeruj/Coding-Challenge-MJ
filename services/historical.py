@@ -2,6 +2,7 @@ import logging
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
 from models.migration import Table, departments_columns, jobs_columns, employees_columns, schemas
+from models.query import NumEmployeesGrouped
 from responses.historical import Historical_Services_Responses
 import pandas as pd
 import awswrangler as wr
@@ -13,6 +14,7 @@ from db import pg_conn
 
 log = logging.getLogger("uvicorn")
 
+schema = os.environ.get('DB_SCHEMA')
 
 router = APIRouter(prefix="")
 
@@ -69,10 +71,48 @@ def upload_file(upsert: bool, table_name: Table, include_header: bool = False,ba
 
         table_schema: dict = schemas.get(table_name)
 
-        wr.postgresql.to_sql(df=dataframe,con=pg_conn, table=table_name, schema=os.get('DB_SCHEMA'),upsert_conflict_columns=up_cols,
+        wr.postgresql.to_sql(df=dataframe,con=pg_conn, table=table_name, schema=schema,upsert_conflict_columns=up_cols,
                                    dtype=table_schema, use_column_names=True, mode=mode, chunksize=1000)
     except DatabaseError as e:
         if str(e).__contains__("duplicate key value violates unique constraint"):
             raise HTTPException(status_code=410, detail="Duplicate key. Use Upsert mode if you require to overwrite your data")
 
     return JSONResponse(status_code=200,content={'message': "Accepted"})
+
+@router.get("/employees_req_1", responses={200: {'model': list[dict]}})
+def numb_employees_grouped_department_job_quarters():
+    """
+    Number of employees hired for each job and department in 2021 divided by quarter. The
+    table is ordered alphabetically by department and job.
+    :return:
+    Jsonresponse list[dict]
+    """
+    query = f"""
+    SELECT
+    d.department,
+    j.job,
+    SUM(CASE WHEN EXTRACT(QUARTER FROM e.datetime) = 1 THEN 1 ELSE 0 END) AS Q1,
+    SUM(CASE WHEN EXTRACT(QUARTER FROM e.datetime) = 2 THEN 1 ELSE 0 END) AS Q2,
+    SUM(CASE WHEN EXTRACT(QUARTER FROM e.datetime) = 3 THEN 1 ELSE 0 END) AS Q3,
+    SUM(CASE WHEN EXTRACT(QUARTER FROM e.datetime) = 4 THEN 1 ELSE 0 END) AS Q4
+    FROM
+        {schema}.employees e
+    JOIN
+        {schema}.jobs j ON e.job_id = j.id
+    JOIN
+        {schema}.departments d ON e.department_id = d.id
+    WHERE
+        EXTRACT(YEAR FROM e.datetime) = 2021
+    GROUP BY
+        d.department, j.job
+    ORDER BY
+        d.department, j.job;
+    """
+    df: pd.DataFrame = wr.postgresql.read_sql_query(query, con=pg_conn)
+    log.info(df.head(5))
+
+    result = df.to_dict(orient='records')
+
+    return JSONResponse(status_code=200, content=result)
+
+

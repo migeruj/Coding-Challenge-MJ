@@ -5,6 +5,7 @@ from models.migration import Table, departments_columns, jobs_columns, employees
 from responses.historical import Historical_Services_Responses
 import pandas as pd
 import awswrangler as wr
+import os
 from pg8000.core import DatabaseError
 
 ### DB connection ###
@@ -68,7 +69,7 @@ def upload_file(upsert: bool, table_name: Table, include_header: bool = False,ba
 
         table_schema: dict = schemas.get(table_name)
 
-        wr.postgresql.to_sql(df=dataframe,con=pg_conn, table=table_name, schema='public',upsert_conflict_columns=up_cols,
+        wr.postgresql.to_sql(df=dataframe,con=pg_conn, table=table_name, schema=os.get('DB_SCHEMA'),upsert_conflict_columns=up_cols,
                                    dtype=table_schema, use_column_names=True, mode=mode, chunksize=1000)
     except DatabaseError as e:
         if str(e).__contains__("duplicate key value violates unique constraint"):

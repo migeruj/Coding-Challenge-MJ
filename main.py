@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from services import historical
@@ -8,8 +10,9 @@ log = logging.getLogger("uvicorn")
 
 def run_migrations():
     cursor = pg_conn.cursor()
-    res = cursor.execute('''
-    create table IF NOT EXISTS public.employees
+    schema = os.environ.get('DB_SCHEMA')
+    query = f'''
+    create table IF NOT EXISTS {schema}.employees
     (
         id   integer not null
             constraint employees_pk
@@ -20,7 +23,7 @@ def run_migrations():
         job_id integer
     );
     
-    create table IF NOT EXISTS public.jobs
+    create table IF NOT EXISTS {schema}.jobs
     (
         id   integer not null
             constraint jobs_pk
@@ -29,14 +32,16 @@ def run_migrations():
     );
     
     
-    create table IF NOT EXISTS public.departments
+    create table IF NOT EXISTS {schema}.departments
     (
         id   integer not null
             constraint departments_pk
                 primary key,
         department varchar
     );
-    ''')
+    '''
+
+    res = cursor.execute(query)
     pg_conn.commit()
     cursor.close()
 @asynccontextmanager
@@ -51,5 +56,4 @@ app = FastAPI(lifespan=lifespan)
 @app.on_event("shutdown")
 def shutdown_event():
     pg_conn.close()
-
 app.include_router(historical.router)

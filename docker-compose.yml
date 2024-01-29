@@ -18,6 +18,7 @@ services:
       DB_PASSWORD: BO7ZdJ49p
       DB_PORT: 5439
       DB_USER: postgres
+      DB_SCHEMA: public
     ports:
       - 8000:8000
     depends_on:

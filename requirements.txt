@@ -4,3 +4,5 @@ pydantic==2.5.3
 pandas==2.2.0
 python-multipart==0.0.6
 awswrangler[postgres]==3.5.2
+pytest==8.0.0
+httpx==0.26.0

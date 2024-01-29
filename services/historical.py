@@ -72,6 +72,6 @@ def upload_file(upsert: bool, table_name: Table, include_header: bool = False,ba
                                    dtype=table_schema, use_column_names=True, mode=mode, chunksize=1000)
     except DatabaseError as e:
         if str(e).__contains__("duplicate key value violates unique constraint"):
-            raise HTTPException(status_code=500, detail="Duplicate key. Use Upsert mode if you require to overwrite your data")
+            raise HTTPException(status_code=410, detail="Duplicate key. Use Upsert mode if you require to overwrite your data")
 
     return JSONResponse(status_code=200,content={'message': "Accepted"})

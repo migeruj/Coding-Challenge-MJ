@@ -11,10 +11,14 @@ class NotFound(BaseModel):
 class Unprocessable(BaseModel):
     detail: list[dict[str, Any]]
 
+class Duplicated(BaseModel):
+    detail: str = "Duplicate key. Use Upsert mode if you require to overwrite your data"
+
 BaseErrors = {
     500: {"model": ServerError},
     404: {"model": NotFound},
-    422: {"model": Unprocessable}
+    422: {"model": Unprocessable},
+    410: {"model": Duplicated}
 }
 
 class Accepted(BaseModel):

@@ -29,6 +29,7 @@ class PreconditionError(str, Enum):
     SCHEMA_JOBS_ERROR = "Check your batch file, Doesn't belong to jobs schema"
     SCHEMA_DEPARTMENTS_ERROR = "Check your batch file, Doesn't belong to departments schema"
     UNABLE_TO_DEFINE_SCHEMA = "More columns than expected"
+    NOT_CSV_FILE_UPLOADED = "File MIME type is not valid."
 
 class PreconditionFailed(BaseModel):
     detail: str = PreconditionError

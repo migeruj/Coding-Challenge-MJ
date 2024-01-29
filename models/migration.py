@@ -1,4 +1,3 @@
-from pydantic import BaseModel
 from enum import Enum
 
 class Table(str, Enum):
@@ -13,20 +12,20 @@ departments_columns: list[str] = ["id", "department"]
 jobs_columns: list[str] = ["id", "job"]
 employees_columns: list[str] = ["id", "name", "datetime", "department_id", "job_id"]
 
-schemas = {
+schemas: dict = {
     'employees': {
-        'id': int,
-        'name': str,
-        'datetime': str,
-        'department_id': int,
-        'job_id': int
+        'id': 'INTEGER',
+        'name': 'VARCHAR',
+        'datetime': 'TIMESTAMP',
+        'department_id': 'INTEGER',
+        'job_id': 'INTEGER'
     },
     'jobs': {
-        'id': int,
-        'job': str
+        'id': 'INTEGER',
+        'job': 'VARCHAR'
     },
     'departments': {
-        'id': int,
-        'department': str
+        'id': 'INTEGER',
+        'department': 'VARCHAR'
     }
 }

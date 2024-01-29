@@ -36,7 +36,7 @@ class PreconditionError(str, Enum):
     NOT_CSV_FILE_UPLOADED = "File MIME type is not valid."
 
 class PreconditionFailed(BaseModel):
-    detail: str = PreconditionError
+    detail: PreconditionError
 
 PreconditionFailedErrors = {
     412: {"model": PreconditionFailed}

@@ -17,9 +17,18 @@ router = APIRouter(prefix="")
 @router.post("/", status_code=200, responses=Historical_Services_Responses)
 def upload_file(upsert: bool, table_name: Table, include_header: bool = False,batch_file: UploadFile = File(...)):
     """
-    This request is Sync. It Doesn't allow more than 1GB per operation
-    :return:
-    Request response
+    I created this based on the following infered context:
+
+    This request is Sync. It probably failed with loads more than 1GB per request
+    It will always depend on the amount of available ram memory to run
+
+    This is created taking in mind that it is a controlled context and not more than 100 requests are accepted per min. (Sync pool)
+
+    If this solution were for a SaaS, I would add a work/job/request queue and an async implementation for the DB pool.
+
+    If the historical files are more than 2GB i will consider another solution like Airflow to process the upload
+    If the files are more than 5GB I will consider AWS Glue - PySpark
+    If the files are more than 5GB and will be more than 2 I will consider AWS Glue - PySpark
     """
     if batch_file.content_type != 'text/csv':
         raise HTTPException(status_code=412, detail="File MIME type is not valid.")

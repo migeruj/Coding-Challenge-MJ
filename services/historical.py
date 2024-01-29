@@ -109,10 +109,69 @@ def numb_employees_grouped_department_job_quarters():
         d.department, j.job;
     """
     df: pd.DataFrame = wr.postgresql.read_sql_query(query, con=pg_conn)
-    log.info(df.head(5))
 
     result = df.to_dict(orient='records')
 
     return JSONResponse(status_code=200, content=result)
+
+@router.get("/employees_req_2", responses={200: {'model': list[dict]}})
+def numb_hires_per_deparment():
+    """
+    List of ids, name and number of employees hired of each department that hired more
+    employees than the mean of employees hired in 2021 for all the departments, ordered
+    by the number of employees hired (descending).
+
+    I decided to use cross join for performance considerations
+    and CTE statements for more readability in the avg calculation
+    :return:
+    Jsonresponse list[dict]
+    """
+    query = f"""
+    WITH dept_hires AS (
+        SELECT
+            department_id,
+            COUNT(*) AS dept_hired
+        FROM
+            {schema}.employees
+        WHERE
+            EXTRACT(YEAR FROM datetime) = 2021
+        GROUP BY
+            department_id
+    ),
+    dept_avg AS (
+        SELECT
+            AVG(dept_hired) AS avg_hired
+        FROM
+            dept_hires
+    )
+    SELECT
+        d.id,
+        d.department,
+        COUNT(e.id) AS hired
+    FROM
+        {schema}.employees e
+    JOIN
+        departments d ON e.department_id = d.id
+    JOIN
+        dept_hires dh ON d.id = dh.department_id
+    CROSS JOIN
+        dept_avg
+    WHERE
+        EXTRACT(YEAR FROM e.datetime) = 2021
+    GROUP BY
+        d.id, d.department, dh.dept_hired, avg_hired
+    HAVING
+        COUNT(e.id) > avg_hired
+    ORDER BY
+    hired DESC;
+    """
+    df: pd.DataFrame = wr.postgresql.read_sql_query(query, con=pg_conn)
+
+    result = df.to_dict(orient='records')
+
+    return JSONResponse(status_code=200, content=result)
+
+
+
 
 
